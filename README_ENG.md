@@ -19,6 +19,10 @@
 - Replace commands and cards (Required)
 - Paste your bot token into the file
 
+## License
+- The project is distributed under the AGPL v3.0 license
+- See LICENSE
+
 ## Official bot
 - Creator WinK
 - Telegram Channel t.me/AKUL_CARD
