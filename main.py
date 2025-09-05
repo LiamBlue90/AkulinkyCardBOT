@@ -23,7 +23,7 @@ import threading
 from datetime import timedelta
 from flask import Flask
 
-TOKEN = "7420458312:AAEcrhjhCshuOhTSf40Q-IaTNasAkIr75BM"
+TOKEN = ""
 CHAT_ID = "-4842781952"  
 bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__)
