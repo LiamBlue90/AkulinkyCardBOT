@@ -23,17 +23,15 @@ import threading
 from datetime import timedelta
 from flask import Flask
 
-TOKEN = ""
-CHAT_ID = ""  # Укажи ID своего чата
+TOKEN = "7420458312:AAEcrhjhCshuOhTSf40Q-IaTNasAkIr75BM"
+CHAT_ID = "-4842781952"  
 bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__)
 
 
-# Подключение к базе данных
 conn = sqlite3.connect("shark_cards.db", check_same_thread=False)
 c = conn.cursor()
 
-# Создание таблиц
 c.execute('''CREATE TABLE IF NOT EXISTS users (
                 user_id INTEGER PRIMARY KEY, 
                 last_used INTEGER,
@@ -53,7 +51,6 @@ c.execute('''CREATE TABLE IF NOT EXISTS user_cards (
             )''')
 conn.commit()
 
-# Список карточек
 shark_cards = [
     ("Акула Кушает", "https://www.dropbox.com/scl/fi/i41jo3onfzxf2dnplzbs9/akuva.png?rlkey=k73tvvagstzpi9yixzgugi9qo&raw=1"),
     ("Деловая Акула", "https://www.dropbox.com/scl/fi/u8w20fbecg559hb611iy7/akuvi.jpg?rlkey=xvpr5dczyh2xrrzf80oc8nd0g&raw=1"),
@@ -112,9 +109,43 @@ def get_card(message):
     c.execute("UPDATE users SET last_used = ? WHERE user_id = ?", (now, user_id))
     conn.commit()
 
+from telebot.types import InputMediaPhoto
+
+@bot.message_handler(commands=['mycards'])
+def mycards(message):
+    user_id = message.from_user.id
+    c = conn.cursor()
+    c.execute("""SELECT cards.name, cards.image 
+                 FROM user_cards 
+                 JOIN cards ON user_cards.card_id = cards.id 
+                 WHERE user_cards.user_id = ?""", (user_id,))
+    user_cards = c.fetchall()
+    c.close()
+
+    if not user_cards:
+        bot.send_message(message.chat.id, "У тебя пока нет карточек 😔. Попробуй получить через /Акува!")
+        return
+
+    text = "📦 Твои карточки ({} шт.):\n".format(len(user_cards))
+    for name, _ in user_cards:
+        text += f"• {name}\n"
+    bot.send_message(message.chat.id, text)
+
+    batch_size = 10
+    for i in range(0, len(user_cards), batch_size):
+        batch = user_cards[i:i+batch_size]
+        media_group = []
+        for idx, (name, image) in enumerate(batch):
+            if idx == 0:
+                media_group.append(InputMediaPhoto(media=image, caption=f""))
+            else:
+                media_group.append(InputMediaPhoto(media=image))
+        bot.send_media_group(message.chat.id, media_group)
+    
+    
 @bot.message_handler(commands=['bootdeeptrue'])
 def bootdeeptrue(message):
-    developer_id = 123456789  
+    developer_id = 6378736359  
     if message.from_user.id != developer_id:
         bot.send_message(message.chat.id, "Эта команда доступна только разработчику!")
         return
@@ -122,7 +153,6 @@ def bootdeeptrue(message):
     card = c.fetchone()
     bot.send_photo(message.chat.id, card[1], caption="Тебе выпала карточка: {}!".format(card[0]))
 
-# Автопинг
 def auto_ping():
     while True:
         bot.send_message(CHAT_ID, "/ping")  
@@ -131,7 +161,81 @@ def auto_ping():
 
 threading.Thread(target=auto_ping, daemon=True).start()
 
-@bot.message_handler(commands=['list'])
+@bot.message_handler(commands=['profile'])
+def profile(message):
+    args = message.text.split()
+
+    if len(args) == 1:
+        target_id = message.from_user.id
+        target_name = f"@{message.from_user.username}" if message.from_user.username else message.from_user.first_name
+    else:
+        query = args[1]
+
+        if query.isdigit():
+            target_id = int(query)
+            try:
+                user_obj = bot.get_chat(target_id)
+                target_name = f"@{user_obj.username}" if user_obj.username else user_obj.first_name
+            except:
+                target_name = f"ID:{target_id}"
+        
+        elif query.startswith("@"):
+            username = query[1:]
+            c.execute("SELECT user_id FROM users")
+            all_users = [u[0] for u in c.fetchall()]
+            
+            target_id = None
+            target_name = query
+            for uid in all_users:
+                try:
+                    user_obj = bot.get_chat(uid)
+                    if user_obj.username and user_obj.username.lower() == username.lower():
+                        target_id = uid
+                        target_name = f"@{user_obj.username}"
+                        break
+                except:
+                    pass
+            
+            if not target_id:
+                bot.send_message(message.chat.id, "❌ Пользователь с таким @username не найден в базе.")
+                return
+        else:
+            bot.send_message(message.chat.id, "❌ Укажи ID или @username.")
+            return
+
+    c.execute("SELECT acuvki FROM users WHERE user_id = ?", (target_id,))
+    row = c.fetchone()
+    if not row:
+        bot.send_message(message.chat.id, f"{target_name} ещё не получал карточки 😔")
+        return
+    acuvki = row[0]
+
+    c.execute("SELECT COUNT(*) FROM user_cards WHERE user_id = ?", (target_id,))
+    cards_count = c.fetchone()[0]
+
+    c.execute("SELECT user_id FROM users ORDER BY acuvki DESC")
+    all_users = [u[0] for u in c.fetchall()]
+    rank_acuvki = all_users.index(target_id) + 1 if target_id in all_users else "—"
+
+    c.execute("""SELECT user_id, COUNT(card_id) as cnt 
+                 FROM user_cards 
+                 GROUP BY user_id 
+                 ORDER BY cnt DESC""")
+    all_cards_rank = [u[0] for u in c.fetchall()]
+    rank_cards = all_cards_rank.index(target_id) + 1 if target_id in all_cards_rank else "—"
+
+    profile_text = (
+        f"👤 Профиль {target_name}\n\n"
+        f"💰 Акувки: {acuvki}\n"
+        f"🃏 Карточек: {cards_count}\n"
+        f"🏆 Ранг по Акувкам: {rank_acuvki}\n"
+        f"📦 Ранг по Карточкам: {rank_cards}"
+    )
+
+    bot.send_message(message.chat.id, profile_text)
+
+
+@bot.message_handler(commands=['list', 'top', 'topakuv', 'leaderakuv', 'leaderbalance', 'leaderakul'])
 def list_top(message):
     try:
         c.execute("SELECT user_id, acuvki FROM users ORDER BY acuvki DESC LIMIT 10")
@@ -158,7 +262,44 @@ def list_top(message):
     except Exception as e:
         bot.send_message(message.chat.id, f"Ошибка при получении топа: {e}")
 
+from telebot.types import InputMediaPhoto
 
+@bot.message_handler(commands=['topcards', 'top', 'leadercard', 'leadercards'])
+def topcards(message):
+    c = conn.cursor()
+    c.execute("""
+        SELECT users.user_id, COUNT(uc.card_id) AS total_cards
+        FROM users
+        LEFT JOIN user_cards uc ON users.user_id = uc.user_id
+        GROUP BY users.user_id
+        ORDER BY total_cards DESC
+        LIMIT 10
+    """)
+    rows = c.fetchall()
+    c.close()
+
+    def display_name(uid):
+        try:
+            ch = bot.get_chat(uid)
+            if getattr(ch, 'username', None):
+                return f"@{ch.username}"
+            fullname = " ".join(x for x in [getattr(ch, 'first_name', None), getattr(ch, 'last_name', None)] if x)
+            return fullname.strip() if fullname.strip() else "Неизвестный"
+        except Exception:
+            return "Неизвестный"
+
+    if not rows:
+        bot.send_message(message.chat.id, "❌ Пока нет ни одного участника в топе.")
+        return
+
+    text = "🏆 Топ 10 по картам 🏆\n\n"
+    for pos, (uid, total) in enumerate(rows, start=1):
+        name = display_name(uid)
+        text += f"{pos}. {name} — {total} карт\n"
+
+    bot.send_message(message.chat.id, text)
+
+                
 @bot.message_handler(commands=['allcards'])
 def allcards(message):
     developer_id = 123456789
