@@ -24,7 +24,7 @@ from datetime import timedelta
 from flask import Flask
 
 TOKEN = ""
-CHAT_ID = "-4842781952"  
+CHAT_ID = ""  
 bot = telebot.TeleBot(TOKEN)
 app = Flask(__name__)
 
